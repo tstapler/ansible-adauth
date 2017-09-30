@@ -1,0 +1,61 @@
+---
+# tasks file for common
+
+- name: Install prerequisites
+  package: name={{item}} state=present
+  with_items:
+   - realmd 
+   - oddjob
+   - oddjob-mkhomedir
+   - samba-common
+   - sssd
+   - python-pip
+
+- name: Install krb5 workstation
+  package: name=krb5-workstation
+  when: ansible_os_family == "RedHat"
+
+- name: Install krb5
+  apt: name=krb5-user
+  when: ansible_os_family == "Debian"
+
+- name: Install pexpect using pip
+  pip: name=pexpect
+
+- name: Discover realm
+  shell: /bin/bash -c "/usr/sbin/realm discover {{ domain_name | lower }}"
+  register: realmd_discovery
+
+- name: Check if machine is bound
+  shell: /bin/bash -c "realm list | grep sssd"
+  register: realmd_bound
+  changed_when: false
+  ignore_errors: true
+
+- name: Join Active Directory
+  expect:
+    command: /bin/bash -c "/usr/sbin/realm join {{ domain_name | lower}} -U {{ adauth_username }}"
+    responses: 
+      Password for .*: "{{ adauth_password }}"
+  when: realmd_bound|failed
+  register: realmd_join
+
+- name: Generate sssd.conf (1/3)
+  lineinfile: dest=/etc/sssd/sssd.conf line="use_fully_qualified_names = False"
+  register: sssd1
+
+- name: Generate sssd.conf (2/3)
+  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="fallback_homedir = /home/%u@%d" line="fallback_homedir = /home/%u/" backrefs=yes 
+  register: sssd2
+
+- name: Generate sssd.conf (3/3)
+  lineinfile: dest=/etc/sssd/sssd.conf line="fallback_homedir = /home/%u/"
+  register: sssd3
+
+- name: Create users
+  include: add_group.yml ad_group={{item}}
+  with_items: "{{ ad_groups }}"
+
+- name: Restart sssd
+  systemd: state=restarted daemon_reload=yes name=sssd
+

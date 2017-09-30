@@ -1,0 +1,6 @@
+# Vars general
+domain_full: teamn.isucdc.com
+adauth_username: username
+adauth_password: password
+ad_groups:
+  - Domain Admins

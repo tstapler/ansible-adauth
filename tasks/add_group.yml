@@ -1,0 +1,20 @@
+- name: "Set modified vars"
+  set_fact:
+    ad_group_sudo_file: "{{ ad_group | replace(' ', '_') }}"
+- name: Check if {{ ad_group }} group can login through ssh
+  command: /bin/bash -c "/usr/sbin/realm list | grep '{{ ad_group }}'"
+  register: group_can_login
+  changed_when: false
+  ignore_errors: true
+
+- name: Permit {{ ad_group }} group login
+  command: /bin/bash -c "/usr/sbin/realm permit -g '{{ ad_group }}'" 
+  when: group_can_login|failed
+- name: Add {{ ad_group }} group to sudoers
+  lineinfile: 
+    line='%{{ ad_group | replace(" ", "\ ")}} ALL=(ALL) ALL'
+    path="/etc/sudoers.d/{{ ad_group_sudo_file }}" 
+    owner=root 
+    group=root 
+    mode=044 
+    create=true
