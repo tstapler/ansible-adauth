@@ -1,5 +1,28 @@
 # ansible-adauth
 
-Add all required variables in roles/vars/main.yml  
-Add you server to production file  
-use this playbook with `ansible-playbook -i production site.ym`  
+Ansible role to join a Linux Machine (Tested on Fedora and Ubuntu) to an Acive Directory domain using `realm`. The role will also allow specified groups to login and add them to sudoers.
+
+# Variables
+```yaml
+# Vars general
+domain_full: teamn.isucdc.com # The domain you wish to join
+adauth_username: username # A user with permission to join the domain
+adauth_password: password
+# Groups who should be allowed to login to the machine
+ad_groups:
+  - Domain Admins
+```
+
+# Running
+```
+
+- hosts: linux_boxes
+  roles:
+   - role: ansible-adauth
+     domain_name: teamn.isucdc.com
+     adauth_username: username
+     adauth_password: password
+     ad_groups:
+       - Domain Admins
+
+```
