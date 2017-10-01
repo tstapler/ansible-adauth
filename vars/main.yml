@@ -3,4 +3,9 @@ domain_full: teamn.isucdc.com
 adauth_username: username
 adauth_password: password
 ad_groups:
-  - Domain Admins
+  - name: Domain Admins
+  - name: Other Group
+    sudo_access: true
+  - name: Enterprise Admins
+    sudo_access: true
+    sudoers_template: '%Enterprise\ Admins ALL=(ALL) NOPASSWD:ALL'

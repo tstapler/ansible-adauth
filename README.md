@@ -8,9 +8,14 @@ Ansible role to join a Linux Machine (Tested on Fedora and Ubuntu) to an Acive D
 domain_full: teamn.isucdc.com # The domain you wish to join
 adauth_username: username # A user with permission to join the domain
 adauth_password: password
-# Groups who should be allowed to login to the machine
+# Groups who are allowed to login to the machine
 ad_groups:
-  - Domain Admins
+  - name: Domain Admins
+  - name: Other Group
+    sudo_access: true
+  - name: Enterprise Admins
+    sudo_access: true
+    sudoers_template: '%Enterprise\ Admins ALL=(ALL) NOPASSWD:ALL'
 ```
 
 # Running
@@ -23,6 +28,11 @@ ad_groups:
      adauth_username: username
      adauth_password: password
      ad_groups:
-       - Domain Admins
+       - name: Domain Admins
+       - name: Other Group
+         sudo_access: true
+       - name: Enterprise Admins
+         sudo_access: true
+         sudoers_template: '%Enterprise\ Admins ALL=(ALL) NOPASSWD:ALL'
 
 ```
